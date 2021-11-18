@@ -10,7 +10,7 @@ pip install tweetple
 
 ## Usage
 
-+ Retrieve tweeplers timeline information 
++ Retrieve tweeplers' timeline information 
 
 ```python
 import tweetple
@@ -25,7 +25,7 @@ TweetPle.TweepleStreamer(ids, bearer_token).main()
 
 ```
 
-+ Retrieve tweets either by providing directly a list of Tweets's ids we want to collect or by providing the twitter handle name of twitter accounts we want to collect tweets from.
++ Retrieve tweets either by providing directly a list of Tweets' ids we want to collect or by providing the twitter handle name of twitter accounts we want to collect tweets from.
 
 ```python
 import tweetple
