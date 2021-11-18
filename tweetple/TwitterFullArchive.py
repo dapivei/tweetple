@@ -22,7 +22,7 @@ class GetInteractionsAssociatedToLink:
     """For a given link, it returns all historical TWITTER interactions,
     associated with the link.
     Warning: To be able to run the following code, one must have an approved
-    Academic Reasearch Account In Twitter! Also the BEARER_TOKEN, which is the
+    Academic Reasearch Account In Twitter! Also the bearer_token, which is the
     access token to Twitter's Api, has to be in the file as this script.
     Params:
     -----------
@@ -34,11 +34,11 @@ class GetInteractionsAssociatedToLink:
     """
     def __init__(self,
                  url,
-                 BEARER_TOKEN,
+                 bearer_token,
                  column_link,
-                 start_time = "2006-03-26T00:00:00Z",
-                 end_time = str(date.today())+'T00:00:00Z'):
-                 self.bearer_token = BEARER_TOKEN
+                 start_time,
+                 end_time):
+                 self.bearer_token = bearer_token
                  self.search_url = "https://api.twitter.com/2/tweets/search/all"
                  self.url = url
                  self.start_time = start_time
@@ -114,7 +114,7 @@ class GetInteractionsAssociatedToLink:
         except:
             df = self.twitter_df()
             df = df.append(pd.Series(), ignore_index=True)
-        df[self.column_link]=self.url
+        df[self.column_link] = self.url
         df['date_consulted'] = str(date.today())
         return(df)
 
@@ -123,7 +123,7 @@ class GetTweetsFromUser:
 
     """For a given user-handle, it returns all tweets associated.
     Warning: To be able to run the following code, one must have an approved
-    Academic Reasearch Account In Twitter! Also the BEARER_TOKEN, which is the
+    Academic Reasearch Account In Twitter! Also the bearer_token, which is the
     access token to Twitter's Api, has to be in the file as this script.
     Params:
     -----------
@@ -135,10 +135,15 @@ class GetTweetsFromUser:
 
     def __init__(self,
                  user,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token,
+                 start_time,
+                 end_time
+                 ):
+                 self.bearer_token = bearer_token
                  self.search_url = "https://api.twitter.com/2/tweets/search/all"
                  self.user = user
+                 self.start_time = start_time
+                 self.end_time = end_time
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -168,8 +173,8 @@ class GetTweetsFromUser:
                         'max_results': 500,
                         'expansions' : 'attachments.poll_ids,attachments.media_keys,author_id,geo.place_id,in_reply_to_user_id,referenced_tweets.id,entities.mentions.username,referenced_tweets.id.author_id',
                         'media.fields' : 'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width',
-                        "start_time": "2020-11-01T00:00:00Z",
-                        "end_time": str(date.today())+'T00:00:00Z'}
+                        "start_time": self.start_time,
+                        "end_time": self.end_time}
 
         json_response = self.connect_to_endpoint(self.search_url,
                                                  headers,
@@ -209,8 +214,8 @@ class GetStatsFromTweets():
     """
     def __init__(self,
                  tweets_ids,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token):
+                 self.bearer_token = bearer_token
                  self.tweets_ids = tweets_ids
                  self.params = {
                                 'tweet.fields':'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
@@ -254,8 +259,8 @@ class GetStatsFromTweet():
     """
     def __init__(self,
                  tweet_id,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token):
+                 self.bearer_token = bearer_token
                  self.tweet_id = tweet_id
                  self.params = {
                                 'tweet.fields':'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
@@ -298,8 +303,8 @@ class GetStatsFromUsers():
 
     def __init__(self,
                  user_ids,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token):
+                 self.bearer_token = bearer_token
                  self.user_ids = user_ids
                  self.params = {
                                 'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'
@@ -338,8 +343,8 @@ class GetStatsFromUser():
 
     def __init__(self,
                  user_id,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token):
+                 self.bearer_token = bearer_token
                  self.user_id = user_id
                  self.params = {
                                 'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'
@@ -366,7 +371,7 @@ class GetRepliesAssociatedToTweet:
 
     """It returns all historical `replies` associated with a given `conversation_id`
     Warning: To be able to run the following code, one must have an approved
-    Academic Reasearch Account In Twitter! Also the BEARER_TOKEN, which is the
+    Academic Reasearch Account In Twitter! Also the bearer_token, which is the
     access token to Twitter's Api, has to be in the file as this script.
     Params:
     -----------
@@ -379,8 +384,8 @@ class GetRepliesAssociatedToTweet:
     """
     def __init__(self,
                  conversation_id,
-                 BEARER_TOKEN):
-                 self.bearer_token = BEARER_TOKEN
+                 bearer_token):
+                 self.bearer_token = bearer_token
                  self.search_url = "https://api.twitter.com/2/tweets/search/all"
                  self.conversation_id = conversation_id
 

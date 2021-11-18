@@ -1,2 +1,2 @@
-from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers
+from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers, GetInteractionsAssociatedToLink
 from .TweetPle import TweepleStreamer, TweetStreamer

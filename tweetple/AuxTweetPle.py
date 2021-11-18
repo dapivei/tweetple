@@ -62,7 +62,7 @@ def df_users_stats():
     return(df_stats)
 
 
-def aggregated_stats_twitter(df, column_link):
+def agg_stats(df, column_link):
 
     """Converts disaggregated twitter stats to aggregated twitter stats"""
 

@@ -8,22 +8,23 @@ import json
 import uuid
 import tqdm
 import time
+import validators
 
 from tqdm import tqdm
 from pandas import json_normalize
 from datetime import date
-from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers
-from .AuxTweetPle import df_tweets_stats, df_users_stats, roundup
+from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers, GetInteractionsAssociatedToLink
+from .AuxTweetPle import df_tweets_stats, df_users_stats, roundup, agg_stats, twitter_df
 
 class TweepleStreamer:
 
-    """Retrieves stats from a list of twitter handles"""
+    """Retrieves timelines from a list of tweeplers (handles)"""
 
     def __init__(self,
                  ids,
                  bearer_token,
                  save = False,
-                 file_name:str or None = None,
+                 file_name = 'tweeplers',
                  path_save:str or None = '.'):
                  self.bearer_token = bearer_token
                  self.ids = ids
@@ -32,7 +33,7 @@ class TweepleStreamer:
                  self.save = save
 
     def main(self):
-        logging.basicConfig(filename='users_handles' + str(date.today()) + '.log', level=logging.INFO)
+        logging.basicConfig(filename=self.file_name + '.log', level=logging.INFO)
         start_time = time.time()
         df_stats = df_users_stats()
         end = roundup(len(self.ids))+100
@@ -57,17 +58,24 @@ class TweepleStreamer:
         return(df_stats)
 
 class TweetStreamer:
+
+    """Retrieves tweets from a list of tweets, handles or links"""
+
     def __init__(self,
                  data,
                  bearer_token,
-                 handles=True,
-                 file_name:str or None = None,
-                 path_save:str or None = './'):
+                 file_name = 'tweets',
+                 path_save:str or None = './',
+                 column_link = 'links.streamed',
+                 start_time = "2006-03-26T00:00:00Z",
+                 end_time = str(date.today())+'T00:00:00Z'):
                  self.bearer_token = bearer_token
+                 self.column_link = column_link
                  self.data = data
-                 self.handles = handles
                  self.file_name = file_name
                  self.path_save = path_save
+                 self.start_time = start_time
+                 self.end_time = end_time
 
     def streamer_handles(self):
 
@@ -79,7 +87,9 @@ class TweetStreamer:
             try:
                 stat = GetTweetsFromUser(
                 handle,
-                self.bearer_token
+                self.bearer_token,
+                self.start_time,
+                self.end_time
                 )
                 stats = stat.main()
                 stats.to_parquet(self.path_save + handle +'.parquet')
@@ -109,8 +119,38 @@ class TweetStreamer:
         logging.info("Done in {} seconds".format(str(time.time() - start_time)))
         return(df_stats)
 
+    def streamer_links(self):
+        df_stats = twitter_df(self.column_link)
+        for url in tqdm(self.data):
+            time.sleep(1)
+            stat = GetInteractionsAssociatedToLink(
+            url,
+            self.bearer_token,
+            self.column_link,
+            self.start_time,
+            self.end_time
+            )
+            stats = stat.main()
+            df_stats= df_stats.append(stats, ignore_index=True)
+        df_stats.to_parquet(self.path_save + self.file_name + '.parquet')
+        stats = agg_stats(df_stats, self.column_link)
+        stats.to_parquet(self.path_save +'agg_stats.parquet')
+
     def main(self):
-        if self.handles:
-            self.streamer_handles()
-        else:
+        """
+        Run tweets wrapper
+        """
+        # validate type of input
+        input = self.data[0]
+
+        if input.isnumeric()==True:
+            #list of tweet ids
             self.streamer_tweetids()
+
+        elif validators.url(input) is True:
+            #list of urls
+            self.streamer_links()
+
+        else:
+            #list of handles
+            self.streamer_handles()

@@ -10,7 +10,7 @@ pip install tweetple
 
 ## Usage
 
-+ Retrieve tweeplers' timeline information 
++ Retrieve tweeplers' timeline information
 
 ```python
 import tweetple
@@ -25,7 +25,15 @@ TweetPle.TweepleStreamer(ids, bearer_token).main()
 
 ```
 
-+ Retrieve tweets either by providing directly a list of Tweets' ids we want to collect or by providing the twitter handle name of twitter accounts we want to collect tweets from.
++ Retrieve tweets
+
+One can provide as input a **list** of:
+
+1. Tweets' ids
+
+2. Tweeples' handles
+
+3. Links
 
 ```python
 import tweetple
@@ -34,12 +42,17 @@ from tweetple import TweetPle
 
 # bearer token accesible via Twitter Developer Academic Research Track
 bearer_token='AAAAAAAA'
-# list of tweets' ids
-tweetids = ['1461090445702881281']
-TweetPle.TweetStreamer(tweetids, bearer_token, handles=False, file_name='tweets').main()
 
-# list of tweeplers' twitter handles
-tweephandles = ['zorroyanez']
-TweetPle.TweetStreamer(tweephandles, bearer_token ).main()
+# list of tweets' ids
+tweetl = ['1461090445702881281']
+TweetPle.TweetStreamer(tweetl, bearer_token).main()
+
+# list of tweeplers' handles
+tweeplel = ['zorroyanez']
+TweetPle.TweetStreamer(tweeplel, bearer_token).main()
+
+# list of links potentially shared via twitter
+linkl = ['https://lula.com.br/22-vitorias-judiciais-de-lula-inquerito-contra-filhos-e-encerrado-por-falta-de-provas/']
+TweetPle.TweetStreamer(linkl, bearer_token).main()
 
 ```
