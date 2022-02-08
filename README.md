@@ -1,5 +1,4 @@
 # TWEETPLE
-![GitHub all releases](https://img.shields.io/github/downloads/dapivei/tweetple/total?color=84A3BC&logo=Github)
 [![Twitter API v2 badge](https://img.shields.io/endpoint?url=https%3A%2F%2Ftwbadges.glitch.me%2Fbadges%2Fv2)](https://developer.twitter.com/en/docs/twitter-api/early-access)
 ## Installation
 
