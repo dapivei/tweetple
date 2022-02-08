@@ -6,6 +6,9 @@
 import math
 import pandas as pd
 
+from functools import reduce
+
+
 def twitter_df(column_link):
     """
     Creates blank dataframe of stats associated to a link/tweet/conversation_id shared through
@@ -20,11 +23,12 @@ def twitter_df(column_link):
                     'public_metrics.retweet_count', 'referenced_tweets', 'reply_settings',
                     'source', 'text', column_link,
                     'date_consulted'])
-    return(df_stats)
+    return df_stats
 
 
 def roundup(x):
     """Rounds up to the next nearest 100"""
+    
     return int(math.ceil(x / 100.0)) * 100
 
 
@@ -43,7 +47,7 @@ def df_tweets_stats():
        'entities.annotations', 'entities.urls', 'attachments.media_keys',
        'date_consulted']
     )
-    return(df_stats)
+    return df_stats
 
 
 def df_users_stats():
@@ -59,35 +63,44 @@ def df_users_stats():
        'pinned_tweet_id', 'entities.url.urls', 'entities.description.mentions',
        'entities.description.urls', 'entities.description.hashtags']
     )
-    return(df_stats)
+
+    return df_stats
 
 
-def agg_stats(df, column_link):
+def aggregate_twitter_metrics(df, column):
+    """Computes aggregated Twitter metrics from disaggregated metrics
 
-    """Converts disaggregated twitter stats to aggregated twitter stats"""
+    Parameters
+    ----------
+    df : dataframe
+        Dataframe with disaggregated metrics
+    column : str
+        Column with links searched
 
-    df['shared_twitter']=df['id'].notna().astype(int)
-    shared_twitter = df[[column_link,'shared_twitter']]
-    shared_twitter = shared_twitter.drop_duplicates()
-    columns =['public_metrics.like_count', 'public_metrics.quote_count', 'public_metrics.reply_count', 'public_metrics.retweet_count']
-    df[columns]=df[columns].fillna(value=0)
-    metrics = df.groupby(column_link).sum().reset_index()
-    metrics=metrics[metrics.columns[:-1]]
-    metrics = metrics.rename(
-    columns={
-    'public_metrics.like_count': 'like_count_twitter',
-    'public_metrics.quote_count': 'quote_count_twitter',
-    'public_metrics.reply_count':'reply_count_twitter',
-    'public_metrics.retweet_count':'retweet_count_twitter'
-    })
-    df_agg=shared_twitter.merge(metrics, how='left', on=column_link)
-    not_nas = df[df.shared_twitter==1]
-    num_users = not_nas.groupby([column_link]).count().reset_index()
-    num_users= num_users[[column_link, 'author_id' ]]
-    num_users = num_users.rename(
-    columns={
-    'author_id': 'num_users_twitter'
-    })
-    df_agg=df_agg.merge(num_users, how='left', on=column_link)
-    df_agg['total_interactions_twitter']= df_agg['like_count_twitter']+df_agg['quote_count_twitter']+df_agg['reply_count_twitter']+df_agg['retweet_count_twitter']
-    return(df_agg.fillna(0))
+    Returns
+    -------
+    engagements : dataframe
+        Dataframe with aggregated engagement metrics
+    """
+
+    df['shared'] = df['id'].notna().astype(int)
+    shared_twitter = df[[column,'shared']].drop_duplicates()
+    metrics_columns = [col for col in df.columns if 'public_metrics' in col]
+    df[metrics_columns] = df[metrics_columns].fillna(value=0)
+    metrics = df.groupby(column).sum().reset_index().drop(columns='shared')
+    num_users = df[df.shared==1].groupby([column]).count().reset_index()
+    num_users = num_users.rename(columns={'author_id': 'num_users'})
+    engagements = reduce(
+        lambda left,right: pd.merge(left, right, on=column, how='left'),
+        [shared_twitter, metrics, num_users[[ column, 'num_users' ]]]
+    )
+    engagements["total_interactions"] = engagements[
+        [x for x in engagements.columns if 'public_metrics' in x]
+    ].sum(axis = "columns")
+    engagements.columns = engagements.columns.str.replace('public_metrics.', '')
+    engagements['n_calls'] = df['response']/200
+    cols = [str(col) + '_twitter' for col in engagements.columns if col != column]
+    engagements.columns = [column] + cols
+
+
+    return engagements.fillna(0)

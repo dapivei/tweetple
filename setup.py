@@ -1,12 +1,31 @@
+#!/usr/bin/env python3
+# encoding: utf-8
+# ============================================================================
+"""Setup Package"""
+
+import os
+
 from setuptools import setup
+
+
+def read_file(filename):
+
+    """Read file
+    ...
+    """
+    with open(os.path.join(os.getcwd(), filename), encoding='UTF-8') as f:
+        return f.read()
+
 
 setup(
     name='tweetple',
-    version='0.13007',
+    version='0.3',
     author='Daniela Pinto Veizaga',
     author_email='danielapintoveizaga@gmail.com',
     description='A python wrapper for users of the Academic Research product track',
     packages=['tweetple'],
+    long_description=read_file('README.md'),
+    long_description_content_type="text/markdown", 
     install_requires = [
        'certifi==2021.10.8',
        'charset-normalizer==2.0.7',

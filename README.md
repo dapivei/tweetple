@@ -10,22 +10,28 @@ pip install tweetple
 
 ## Usage
 
-+ Retrieve tweeplers' timeline information
++ Users and Followers Lookup
 
 ```python
 import tweetple
 
 from tweetple import TweetPle
 
-# bearer token accesible via Twitter Developer Academic Research Track
+# Bearer token accesible via Twitter Developer Academic Research Track
 bearer_token='AAAAAAAA'
-# list of tweeplers' ids
+
+# List of ids
 ids = ['308131814']
-TweetPle.TweepleStreamer(ids, bearer_token).main()
+
+# Retrieve users' information
+TweetPle.TweepleStreamer(ids, bearer_token).user_lookup()
+
+# Retrieve followers' information
+TweetPle.TweepleStreamer(ids, bearer_token).followers_lookup()
 
 ```
 
-+ Retrieve tweets
++ Retrieve Tweets
 
 One can provide as input a **list** of:
 
