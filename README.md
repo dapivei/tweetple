@@ -1,5 +1,7 @@
 # TWEETPLE
+
 [![Twitter API v2 badge](https://img.shields.io/endpoint?url=https%3A%2F%2Ftwbadges.glitch.me%2Fbadges%2Fv2)](https://developer.twitter.com/en/docs/twitter-api/early-access)
+
 ## Installation
 
 The easiest way to install the latest version from PyPI is by using pip:
@@ -9,7 +11,7 @@ pip install tweetple
 
 ## Usage
 
-+ Users and Followers Lookup
++ Users, Followers, Liking Users and Retweeted By Lookup
 
 ```python
 import tweetple
@@ -19,7 +21,7 @@ from tweetple import TweetPle
 # Bearer token accesible via Twitter Developer Academic Research Track
 bearer_token='AAAAAAAA'
 
-# List of ids
+# List of handle ids
 ids = ['308131814']
 
 # Retrieve users' information
@@ -28,6 +30,16 @@ TweetPle.TweepleStreamer(ids, bearer_token).user_lookup()
 # Retrieve followers' information
 TweetPle.TweepleStreamer(ids, bearer_token).followers_lookup()
 
+# List of tweet ids
+
+ids = ['308131814']
+
+# Retrieve liking users
+TweetPle.TweepleStreamer(ids, bearer_token).likes_lookup()
+
+# Retrieve retweeting users
+
+TweetPle.TweepleStreamer(ids, bearer_token).retweet_lookup()
 ```
 
 + Retrieve Tweets

@@ -19,14 +19,14 @@ def read_file(filename):
 
 setup(
     name='tweetple',
-    version='0.3',
+    version='0.55',
     author='Daniela Pinto Veizaga',
     author_email='danielapintoveizaga@gmail.com',
     description='A python wrapper for users of the Academic Research product track',
     packages=['tweetple'],
     long_description=read_file('README.md'),
-    long_description_content_type="text/markdown", 
-    install_requires = [
+    long_description_content_type="text/markdown",
+    install_requires=[
        'certifi==2021.10.8',
        'charset-normalizer==2.0.7',
        'cramjam==2.5.0',
