@@ -64,7 +64,8 @@ class TweepleStreamer:
             )
         if self.save:
             df_stats.to_parquet(f'{self.path_save}{self.file_name}.parquet')
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
         return df_stats
 
@@ -91,7 +92,8 @@ class TweepleStreamer:
                 time.sleep(60)
 
         logging.info(f"Ids not scraped: {not_scraped}")
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
     def likes_lookup(self):
         """Retrieves users that liked a Tweet
@@ -106,7 +108,8 @@ class TweepleStreamer:
 
             try:
 
-                df = GetTweetplerInteracting(id_tweet, self.bearer_token, 'liking_users').main()
+                df = GetTweetplerInteracting(
+                    id_tweet, self.bearer_token, 'liking_users').main()
                 df.to_parquet(f"{self.path_save}{id_tweet}.parquet")
 
             except ValueError:
@@ -115,7 +118,8 @@ class TweepleStreamer:
                 time.sleep(11)
 
         logging.info(f"Tweet Ids not scraped: {not_scraped}")
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
     def retweet_lookup(self):
         """Retrieves users that retweeted a Tweet
@@ -130,7 +134,8 @@ class TweepleStreamer:
 
             try:
 
-                df = GetTweetplerInteracting(id_tweet, self.bearer_token, 'retweeted_by').main()
+                df = GetTweetplerInteracting(
+                    id_tweet, self.bearer_token, 'retweeted_by').main()
                 df.to_parquet(f"{self.path_save}{id_tweet}.parquet")
 
             except ValueError:
@@ -139,7 +144,8 @@ class TweepleStreamer:
                 time.sleep(11)
 
         logging.info(f"Tweet Ids not scraped: {not_scraped}")
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
 
 class TweetStreamer:
@@ -184,29 +190,32 @@ class TweetStreamer:
         self.end_time = end_time
 
     def streamer_handles(self):
-
         """Retrieves tweets from a list of Twitter handles
         ...
 
         """
-        logging.basicConfig(filename='streamer_handles.log', level=logging.INFO)
+        logging.basicConfig(
+            filename='streamer_handles.log', level=logging.INFO)
         start_time = time.time()
         search_url = "https://api.twitter.com/2/tweets/search/all"
         for handle in tqdm(self.data):
             try:
-                stat = GetTweetsFromUser(handle, self.bearer_token, self.start_time, self.end_time, search_url).main()
+                stat = GetTweetsFromUser(
+                    handle, self.bearer_token, self.start_time, self.end_time, search_url).main()
                 stat.to_parquet(self.path_save + handle + '.parquet')
             except:
-                logging.exception("Failed to retrieve tweets from {}".format(handle))
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+                logging.exception(
+                    "Failed to retrieve tweets from {}".format(handle))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
     def streamer_tweetids(self):
-
         """Retrieves stats from a list of tweets
         ...
 
         """
-        logging.basicConfig(filename='streamer_tweetids.log', level=logging.INFO)
+        logging.basicConfig(
+            filename='streamer_tweetids.log', level=logging.INFO)
         start_time = time.time()
         df_stats = df_tweets_stats()
         end = roundup(len(self.data))+100
@@ -218,12 +227,12 @@ class TweetStreamer:
                 ignore_index=True
             )
         df_stats.to_parquet(f'{self.path_save}{self.file_name}.parquet')
-        logging.info("Done in {} seconds".format(str(time.time() - start_time)))
+        logging.info("Done in {} seconds".format(
+            str(time.time() - start_time)))
 
         return df_stats
 
     def streamer_links(self):
-
         """Retrieves tweets containing links
         ...
 
@@ -235,7 +244,7 @@ class TweetStreamer:
             time.sleep(1)
             stat = GetInteractionsAssociatedToLink(
                 url, self.bearer_token, self.column_link, self.start_time, self.end_time, search_url
-                )
+            )
             df_stats = df_stats.append(stat.main(), ignore_index=True)
         df_stats.to_parquet(f'{self.path_save}{self.file_name}.parquet')
         stats = aggregate_twitter_metrics(df_stats, self.column_link)

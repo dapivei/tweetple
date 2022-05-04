@@ -54,7 +54,7 @@ class TwitterObject:
         self.search_url = search_url
         self.start_time = start_time
         self.end_time = end_time
-        
+
     def create_headers(self):
         """
         Create headers for call
@@ -99,33 +99,32 @@ class TwitterObject:
         next_token = json_response["meta"]["next_token"]
 
         query_params.update({'next_token': next_token})
-                
+
     def query(self):
-        
+
         query = {
-            
-            'tweet.fields': 'created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
+            'tweet.fields': 'author_id,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
             'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified',
             'max_results': 500,
             'expansions': 'attachments.poll_ids,attachments.media_keys,author_id,geo.place_id,in_reply_to_user_id,referenced_tweets.id,entities.mentions.username,referenced_tweets.id.author_id',
             'media.fields': 'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width',
             'start_time': self.start_time,
             'end_time': self.end_time
-            
+
         }
-        
+
         return query
-    
+
     def call(self, json_response, query, headers):
-        
+
         df = json_normalize(json_response['data']).sort_index(axis=1)
 
         while 'next_token' in json_response['meta'].keys():
-            
+
             time.sleep(1)
-            
+
             self.paginate(json_response, query)
-            
+
             response = requests.request(
 
                 "get",
@@ -137,7 +136,9 @@ class TwitterObject:
 
             json_response.update(response.json())
 
-            df = df.append(json_normalize(json_response['data']).sort_index(axis=1))
+            df = df.append(
+                json_normalize(json_response['data']).sort_index(axis=1)
+            )
 
         df.reset_index(
 
@@ -249,7 +250,8 @@ class GetInteractionsAssociatedToLink(TwitterObject):
 
             df = df.append(pd.Series(), ignore_index=True)
 
-        df[self.column_link], df['date_consulted'], df['response'] = self.url, str(date.today()), response.status_code
+        df[self.column_link], df['date_consulted'], df['response'] = self.url, str(
+            date.today()), response.status_code
 
         return df
 
@@ -276,7 +278,8 @@ class GetFollowers:
 
         self.bearer_token = bearer_token
         self.id_user = id_user
-        self.search_url = "https://api.twitter.com/2/users/{}/followers".format(id_user)
+        self.search_url = "https://api.twitter.com/2/users/{}/followers".format(
+            id_user)
 
     def main(self):
 
@@ -311,7 +314,8 @@ class GetFollowers:
 
             json_response.update(response.json())
 
-            df = df.append(pd.DataFrame(json_response['data']).sort_index(axis=1))
+            df = df.append(pd.DataFrame(
+                json_response['data']).sort_index(axis=1))
 
         df.reset_index(
 
@@ -320,13 +324,15 @@ class GetFollowers:
 
         )
 
-        df['author_id_following'], df['date_consulted'], df['response'] = self.id_user, str(date.today()), response.status_code
+        df['author_id_following'], df['date_consulted'], df['response'] = self.id_user, str(
+            date.today()), response.status_code
 
         return df
 
 
 class GetTweetplerInteracting:
     """Retrieves a list of accounts that have liked or retweeted a Tweet."""
+
     def __init__(self, id_tweet, bearer_token, type_interaction):
         self.id_tweet = id_tweet
         self.type = type_interaction
@@ -341,7 +347,8 @@ class GetTweetplerInteracting:
             end = 'retweeted_by'
             col = 'tweet_retweeted'
 
-        url = "https://api.twitter.com/2/tweets/{}/{}".format(self.id_tweet, end)
+        url = "https://api.twitter.com/2/tweets/{}/{}".format(
+            self.id_tweet, end)
         query = {'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
 
         response = requests.get(
@@ -364,17 +371,20 @@ class GetTweetplerInteracting:
             response = requests.get(
 
                 url,
-                headers={"Authorization": "Bearer {}".format(self.bearer_token)},
+                headers={"Authorization": "Bearer {}".format(
+                    self.bearer_token)},
                 params=query
 
             )
 
-            response_status[0] = [response.status_code if response.status_code != 200 else response_status[0]][0]
+            response_status[0] = [
+                response.status_code if response.status_code != 200 else response_status[0]][0]
 
             json_response.update(response.json())
 
             try:
-                df = df.append(pd.DataFrame(response.json()['data']).sort_index(axis=1))
+                df = df.append(pd.DataFrame(
+                    response.json()['data']).sort_index(axis=1))
             except:
                 pass
 
@@ -386,7 +396,8 @@ class GetTweetplerInteracting:
             inplace=True
 
         )
-        df[col], df['date_consulted'], df['response'] = self.id_tweet, str(date.today()), response_status[0]
+        df[col], df['date_consulted'], df['response'] = self.id_tweet, str(
+            date.today()), response_status[0]
 
         return df
 
@@ -437,7 +448,6 @@ class GetTweetsFromUser(TwitterObject):
         self.user = user
 
     def main(self):
-
         """Executes query to Twitter's API.
 
         Returns
@@ -465,7 +475,10 @@ class GetTweetsFromUser(TwitterObject):
 
         df = self.call(json_response, query, headers)
 
-        df['handle'], df['date_consulted'], df['response'] = self.user, str(date.today()), response.status_code   
+        df['handle'], df['date_consulted'], df['response'] = self.user, str(
+            date.today()), response.status_code
+
+        df = df.drop_duplicates(subset='id').reset_index(drop=True)
 
         return df
 
@@ -482,15 +495,16 @@ class GetStatsFromTweets():
     -----------
     ** data: Json object with the result of the call to the api.
     """
+
     def __init__(self, tweets_ids, bearer_token):
         self.bearer_token = bearer_token
         self.tweets_ids = tweets_ids
         self.params = {
-                        'tweet.fields': 'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
-                        'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld',
-                        'media.fields': 'duration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width',
-                        'place.fields': 'contained_within,country,country_code,full_name,geo,id,name,place_type'
-                    }
+            'tweet.fields': 'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
+            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld',
+            'media.fields': 'duration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width',
+            'place.fields': 'contained_within,country,country_code,full_name,geo,id,name,place_type'
+        }
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -498,12 +512,13 @@ class GetStatsFromTweets():
 
     def connect_to_endpoint(self, headers, tweets_ids):
         time.sleep(1)
-        url = "https://api.twitter.com/2/tweets?ids={}".format(",".join(tweets_ids))
+        url = "https://api.twitter.com/2/tweets?ids={}".format(
+            ",".join(tweets_ids))
         response = requests.get(
             url,
             headers=headers,
             params=self.params
-            )
+        )
         return(response.json())
 
     def main(self):
@@ -526,15 +541,16 @@ class GetStatsFromTweet():
     -----------
     ** data: Json object with the result of the call to the api.
     """
+
     def __init__(self, tweet_id, bearer_token):
         self.bearer_token = bearer_token
         self.tweet_id = tweet_id
         self.params = {
-                        'tweet.fields': 'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
-                        'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld',
-                        'media.fields': 'duration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width',
-                        'place.fields': 'contained_within,country,country_code,full_name,geo,id,name,place_type'
-                    }
+            'tweet.fields': 'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
+            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld',
+            'media.fields': 'duration_ms,height,media_key,non_public_metrics,organic_metrics,preview_image_url,promoted_metrics,public_metrics,type,url,width',
+            'place.fields': 'contained_within,country,country_code,full_name,geo,id,name,place_type'
+        }
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -546,7 +562,7 @@ class GetStatsFromTweet():
             "https://api.twitter.com/2/tweets/{}".format(tweet_id),
             headers=headers,
             params=self.params
-            )
+        )
         return response.json()
 
     def main(self):
@@ -576,7 +592,8 @@ class GetStatsFromUsers():
                  bearer_token):
         self.bearer_token = bearer_token
         self.user_ids = user_ids
-        self.params = {'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
+        self.params = {
+            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -585,10 +602,11 @@ class GetStatsFromUsers():
     def connect_to_endpoint(self, headers, user_ids):
         time.sleep(1)
         response = requests.get(
-            "https://api.twitter.com/2/users?ids={}".format(",".join(user_ids)),
+            "https://api.twitter.com/2/users?ids={}".format(
+                ",".join(user_ids)),
             headers=headers,
             params=self.params
-            )
+        )
         return response.json()
 
     def main(self):
@@ -616,7 +634,8 @@ class GetStatsFromUser():
                  bearer_token):
         self.bearer_token = bearer_token
         self.user_id = user_id
-        self.params = {'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
+        self.params = {
+            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -628,7 +647,7 @@ class GetStatsFromUser():
             "https://api.twitter.com/2/users/{}".format(user_id),
             headers=headers,
             params=self.params
-            )
+        )
         return response.json()
 
     def main(self):
@@ -652,6 +671,7 @@ class GetRepliesAssociatedToTweet:
     ** df: dataframe with all variables associated to the replies associated to a
     conversation_id
     """
+
     def __init__(self, conversation_id, bearer_token):
         self.bearer_token = bearer_token
         self.search_url = "https://api.twitter.com/2/tweets/search/all"
@@ -669,7 +689,7 @@ class GetRepliesAssociatedToTweet:
                     self.search_url,
                     headers=headers,
                     params=params
-                    )
+                )
             except response.status_code != 200:
                 time.sleep(60)
                 continue
@@ -717,4 +737,3 @@ class GetRepliesAssociatedToTweet:
 
         except:
             pass
-
