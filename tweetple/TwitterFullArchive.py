@@ -21,7 +21,7 @@ class TwitterObject:
     Attributes
     ----------
     bearer_token : str
-        link we want to retrieve engagements from
+        credentials for the Twitter developer app
     search_url : str
         name of column in which the link will be stored
     start_time : datetime
@@ -278,8 +278,10 @@ class GetFollowers:
 
         self.bearer_token = bearer_token
         self.id_user = id_user
-        self.search_url = "https://api.twitter.com/2/users/{}/followers".format(
-            id_user)
+        self.search_url = "https://api.twitter.com/2/users/{}/followers".\
+            format(
+                id_user
+            )
 
     def main(self):
 
@@ -587,13 +589,12 @@ class GetStatsFromUsers():
     ** data: Json object with the result of the call to the api.
     """
 
-    def __init__(self,
-                 user_ids,
-                 bearer_token):
+    def __init__(self, user_ids, bearer_token):
         self.bearer_token = bearer_token
         self.user_ids = user_ids
         self.params = {
-            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'}
+            'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld'
+        }
 
     def create_headers(self, bearer_token):
         headers = {"Authorization": "Bearer {}".format(self.bearer_token)}
@@ -629,9 +630,7 @@ class GetStatsFromUser():
     ** data: Json object with the result of the call to the api.
     """
 
-    def __init__(self,
-                 user_id,
-                 bearer_token):
+    def __init__(self, user_id, bearer_token):
         self.bearer_token = bearer_token
         self.user_id = user_id
         self.params = {
@@ -658,18 +657,19 @@ class GetStatsFromUser():
 
 class GetRepliesAssociatedToTweet:
 
-    """It returns all historical `replies` associated with a given `conversation_id`
-    Warning: To be able to run the following code, one must have an approved
-    Academic Reasearch Account In Twitter! Also the bearer_token, which is the
-    access token to Twitter's Api, has to be in the file as this script.
-    Params:
-    -----------
-    ** conversation_id (str): conversation_id from which we want to retrieve replies
-    from
-    Output:
-    -----------
-    ** df: dataframe with all variables associated to the replies associated to a
-    conversation_id
+    """Builds conversation threads from an specific conversation id
+    ...
+
+    Attributes
+    ----------
+    conversation_id : str
+        id of conversation thread we want to build
+    bearer_token : str
+        credentials for the Twitter developer app
+
+    Methods
+    ----------
+
     """
 
     def __init__(self, conversation_id, bearer_token):
@@ -705,33 +705,39 @@ class GetRepliesAssociatedToTweet:
         headers = self.create_headers(self.bearer_token)
 
         query_params = {'query': 'conversation_id:' + str(self.conversation_id),
-                        'tweet.fields': 'created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
-                        'user.fields': 'description',
+                        'tweet.fields': 'author_id,created_at,entities,geo,id,in_reply_to_user_id,lang,public_metrics,text,possibly_sensitive,referenced_tweets,reply_settings,source',
                         'max_results': 500,
-                        'expansions': 'author_id',
+                        'expansions': "author_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id,entities.mentions.username,attachments.poll_ids,attachments.media_keys,geo.place_id",
                         'media.fields': 'duration_ms,height,media_key,preview_image_url,public_metrics,type,url,width',
-                        "start_time": "2006-03-26T00:00:00Z",
+                        "start_time": "2021-01-26T00:00:00Z",
                         "end_time": str(date.today())+'T00:00:00Z'}
 
-        json_response = self.connect_to_endpoint(self.search_url,
-                                                 headers,
-                                                 query_params)
+        json_response = self.connect_to_endpoint(
+            self.search_url,
+            headers,
+            query_params
+        )
         try:
             df = json_normalize(json_response['data'])
             df = df.sort_index(axis=1)
             while 'next_token' in json_response['meta'].keys():
                 time.sleep(1)
                 self.paginate(json_response, query_params)
-                response = requests.get(self.search_url,
-                                        headers=headers,
-                                        params=query_params)
+                response = requests.get(
+                    self.search_url,
+                    headers=headers,
+                    params=query_params
+                )
                 json_response.update(response.json())
                 flat = json_normalize(json_response['data'])
                 flat = flat.sort_index(axis=1)
                 df = df.append(flat)
-            df.reset_index(drop=True,
-                           inplace=True)
+            df.reset_index(
+                drop=True,
+                inplace=True
+            )
             df['date_consulted'] = str(date.today())
+            df['conversation_id'] = self.conversation_id
 
             return df
 

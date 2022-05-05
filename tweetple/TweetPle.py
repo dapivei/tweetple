@@ -9,7 +9,7 @@ import validators
 
 from tqdm import tqdm
 from datetime import date
-from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers, GetInteractionsAssociatedToLink, GetFollowers, GetTweetplerInteracting
+from .TwitterFullArchive import GetStatsFromTweets, GetTweetsFromUser, GetStatsFromUsers, GetInteractionsAssociatedToLink, GetFollowers, GetTweetplerInteracting, GetRepliesAssociatedToTweet
 from .AuxTweetPle import df_tweets_stats, df_users_stats, roundup, aggregate_twitter_metrics, twitter_df
 
 
@@ -85,11 +85,9 @@ class TweepleStreamer:
                 df = GetFollowers(id_user, self.bearer_token).main()
                 df.to_parquet(f"{self.path_save}{id_user}.parquet")
 
-            except ValueError:
-
-                print(f"Oops!  Not content for {id_user}.")
-
+            except:
                 time.sleep(60)
+                pass
 
         logging.info(f"Ids not scraped: {not_scraped}")
         logging.info("Done in {} seconds".format(
@@ -109,13 +107,14 @@ class TweepleStreamer:
             try:
 
                 df = GetTweetplerInteracting(
-                    id_tweet, self.bearer_token, 'liking_users').main()
+                    id_tweet, self.bearer_token, 'liking_users'
+                ).main()
                 df.to_parquet(f"{self.path_save}{id_tweet}.parquet")
 
-            except ValueError:
+            except:
 
-                print(f"Oops!  Not content for {id_tweet}.")
                 time.sleep(11)
+                pass
 
         logging.info(f"Tweet Ids not scraped: {not_scraped}")
         logging.info("Done in {} seconds".format(
@@ -135,13 +134,14 @@ class TweepleStreamer:
             try:
 
                 df = GetTweetplerInteracting(
-                    id_tweet, self.bearer_token, 'retweeted_by').main()
+                    id_tweet, self.bearer_token, 'retweeted_by'
+                ).main()
                 df.to_parquet(f"{self.path_save}{id_tweet}.parquet")
 
-            except ValueError:
+            except:
 
-                print(f"Oops!  Not content for {id_tweet}.")
                 time.sleep(11)
+                pass
 
         logging.info(f"Tweet Ids not scraped: {not_scraped}")
         logging.info("Done in {} seconds".format(
@@ -268,3 +268,18 @@ class TweetStreamer:
         else:
             # list of handles
             self.streamer_handles()
+
+
+def get_threads(conversation_ids, bearer_token, path_save):
+    """Retrieves Twitter conversations"""
+
+    for i, conversation_id in enumerate(conversation_ids):
+        print(i, conversation_id)
+        try:
+            df = GetRepliesAssociatedToTweet(
+                conversation_id, bearer_token
+            ).main()
+            df.to_parquet(f'{path_save}{conversation_id}.parquet')
+        except:
+            pass
+        time.sleep(3)

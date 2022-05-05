@@ -18,7 +18,7 @@ def read_file(filename):
 
 setup(
     name='tweetple',
-    version='0.91',
+    version='0.92',
     author='Daniela Pinto Veizaga',
     author_email='danielapintoveizaga@gmail.com',
     description='A python wrapper for users of the Academic Research product track.',
